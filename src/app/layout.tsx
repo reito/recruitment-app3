@@ -11,7 +11,6 @@ export default function Rootlayout ({ children }: { children: React.ReactNode })
   return (
     <html lang='ja'>
       <body className='flex'>
-        {/* <Sidebar /> */}
         <div className='w-full'>
           <Header />
           <main>{children}</main>

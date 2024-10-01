@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase';  // Supabaseクライアントをインポート
+import { supabase } from '../../../lib/supabase';  // Supabaseクライアントをインポート
 
 type Job = {
   title: string;

@@ -1,5 +1,3 @@
-//以下、クエリパラメータによるフィルタリングと部分的SSR適用コード
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -27,12 +25,11 @@ interface HomePageProps {
 }
 
 export default function HomePage({ searchParams }: HomePageProps) {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]); // ここでfilteredJobsだけを使う
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSalary, setSelectedSalary] = useState<number>(0);
 
-  // 初期値としてカテゴリと給与を取得（クエリパラメータを使わない場合も内部的に保持）
+  // 初期値としてカテゴリと給与を取得
   useEffect(() => {
     const categories = searchParams.categories
       ? searchParams.categories.split(',')
@@ -58,7 +55,6 @@ export default function HomePage({ searchParams }: HomePageProps) {
       if (error) {
         console.error('Error fetching jobs:', error);
       } else {
-        setJobs(jobsData || []);
         setFilteredJobs(jobsData || []); // 初期状態ではすべてのジョブを表示
       }
     };
@@ -91,7 +87,7 @@ export default function HomePage({ searchParams }: HomePageProps) {
       }
     };
 
-    fetchFilteredJobs(); // 新しいフィルタ条件でジョブをフェッチ
+    fetchFilteredJobs();
   };
 
   return (
@@ -99,12 +95,121 @@ export default function HomePage({ searchParams }: HomePageProps) {
       <Sidebar
         selectedCategories={selectedCategories}
         selectedSalary={selectedSalary}
-        onFilterChange={handleFilterChange} // フィルタ条件が変更されたときにフィルタ処理を実行
+        onFilterChange={handleFilterChange}
       />
-      <Joblist jobs={filteredJobs} />
+      <Joblist jobs={filteredJobs} /> {/* filteredJobsのみを使う */}
     </div>
   );
 }
+
+
+//以下、クエリパラメータによるフィルタリングと部分的SSR適用コード
+//jobs定義済みにもかかわらず未使用
+// 'use client';
+
+// import { useEffect, useState } from 'react';
+// import { createClient } from '@supabase/supabase-js';
+// import Sidebar from './components/Sidebar';
+// import Joblist from './components/Joblist';
+
+// const supabase = createClient(
+//   process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// );
+
+// interface Job {
+//   id: number;
+//   title: string;
+//   category: string;
+//   salary: number;
+// }
+
+// interface HomePageProps {
+//   searchParams: {
+//     categories?: string;
+//     salary?: string;
+//   };
+// }
+
+// export default function HomePage({ searchParams }: HomePageProps) {
+//   const [jobs, setJobs] = useState<Job[]>([]);
+//   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+//   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+//   const [selectedSalary, setSelectedSalary] = useState<number>(0);
+
+//   // 初期値としてカテゴリと給与を取得（クエリパラメータを使わない場合も内部的に保持）
+//   useEffect(() => {
+//     const categories = searchParams.categories
+//       ? searchParams.categories.split(',')
+//       : [];
+//     const salary = searchParams.salary
+//       ? parseInt(searchParams.salary, 10)
+//       : 0;
+
+//     setSelectedCategories(categories);
+//     setSelectedSalary(salary);
+
+//     // 初期データをフェッチする
+//     const fetchJobs = async () => {
+//       let query = supabase.from('jobs').select('*');
+
+//       if (categories.length > 0) {
+//         query = query.in('category', categories);
+//       }
+
+//       query = query.gte('salary', salary);
+
+//       const { data: jobsData, error } = await query;
+//       if (error) {
+//         console.error('Error fetching jobs:', error);
+//       } else {
+//         setJobs(jobsData || []);
+//         setFilteredJobs(jobsData || []); // 初期状態ではすべてのジョブを表示
+//       }
+//     };
+
+//     fetchJobs();
+//   }, [searchParams]);
+
+//   // フィルタが変更されたときにクエリを実行
+//   const handleFilterChange = (categories: string[], salary: number) => {
+//     setSelectedCategories(categories);
+//     setSelectedSalary(salary);
+
+//     // フィルタリング後のジョブを取得
+//     const fetchFilteredJobs = async () => {
+//       let query = supabase.from('jobs').select('*');
+
+//       if (categories.length > 0) {
+//         query = query.in('category', categories);
+//       }
+
+//       if (salary > 0) {
+//         query = query.gte('salary', salary);
+//       }
+
+//       const { data: filteredData, error } = await query;
+//       if (error) {
+//         console.error('Error fetching filtered jobs:', error);
+//       } else {
+//         setFilteredJobs(filteredData || []);
+//       }
+//     };
+
+//     fetchFilteredJobs(); // 新しいフィルタ条件でジョブをフェッチ
+//   };
+
+//   return (
+//     <div className="flex">
+//       <Sidebar
+//         selectedCategories={selectedCategories}
+//         selectedSalary={selectedSalary}
+//         onFilterChange={handleFilterChange} // フィルタ条件が変更されたときにフィルタ処理を実行
+//       />
+//       <Joblist jobs={filteredJobs} />
+//     </div>
+//   );
+// }
 
 
 

@@ -1,5 +1,8 @@
+//以下、クエリパラメータによるフィルタリングと部分的SSR適用コード
+
 'use client';
 
+import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Sidebar from './components/Sidebar';
 import Joblist from './components/Joblist';
@@ -9,39 +12,552 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default async function HomePage({ searchParams }: { searchParams: { categories?: string, salary?: string } }) {
-  const { categories = '', salary = '0' } = searchParams;
+interface Job {
+  id: number;
+  title: string;
+  category: string;
+  salary: number;
+}
 
-  const selectedCategories = categories ? categories.split(',') : [];
-  const selectedSalary = parseInt(salary, 10) || 0;
+interface HomePageProps {
+  searchParams: {
+    categories?: string;
+    salary?: string;
+  };
+}
 
-  // サーバーサイドでデータをフェッチ
-  let query = supabase.from('jobs').select('*');
+export default function HomePage({ searchParams }: HomePageProps) {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSalary, setSelectedSalary] = useState<number>(0);
 
-  if (selectedCategories.length > 0) {
-    query = query.in('category', selectedCategories);
-  }
+  // 初期値としてカテゴリと給与を取得（クエリパラメータを使わない場合も内部的に保持）
+  useEffect(() => {
+    const categories = searchParams.categories
+      ? searchParams.categories.split(',')
+      : [];
+    const salary = searchParams.salary
+      ? parseInt(searchParams.salary, 10)
+      : 0;
 
-  query = query.gte('salary', selectedSalary);
+    setSelectedCategories(categories);
+    setSelectedSalary(salary);
 
-  const { data: jobs, error } = await query;
+    // 初期データをフェッチする
+    const fetchJobs = async () => {
+      let query = supabase.from('jobs').select('*');
 
-  if (error) {
-    console.error('Error fetching jobs:', error);
-    return <div>エラーが発生しました。</div>;
-  }
+      if (categories.length > 0) {
+        query = query.in('category', categories);
+      }
+
+      query = query.gte('salary', salary);
+
+      const { data: jobsData, error } = await query;
+      if (error) {
+        console.error('Error fetching jobs:', error);
+      } else {
+        setJobs(jobsData || []);
+        setFilteredJobs(jobsData || []); // 初期状態ではすべてのジョブを表示
+      }
+    };
+
+    fetchJobs();
+  }, [searchParams]);
+
+  // フィルタが変更されたときにクエリを実行
+  const handleFilterChange = (categories: string[], salary: number) => {
+    setSelectedCategories(categories);
+    setSelectedSalary(salary);
+
+    // フィルタリング後のジョブを取得
+    const fetchFilteredJobs = async () => {
+      let query = supabase.from('jobs').select('*');
+
+      if (categories.length > 0) {
+        query = query.in('category', categories);
+      }
+
+      if (salary > 0) {
+        query = query.gte('salary', salary);
+      }
+
+      const { data: filteredData, error } = await query;
+      if (error) {
+        console.error('Error fetching filtered jobs:', error);
+      } else {
+        setFilteredJobs(filteredData || []);
+      }
+    };
+
+    fetchFilteredJobs(); // 新しいフィルタ条件でジョブをフェッチ
+  };
 
   return (
     <div className="flex">
       <Sidebar
         selectedCategories={selectedCategories}
         selectedSalary={selectedSalary}
-        onFilterChange={() => {}}  // クライアント側で動くのでダミー関数
+        onFilterChange={handleFilterChange} // フィルタ条件が変更されたときにフィルタ処理を実行
       />
-      <Joblist jobs={jobs || []} />
+      <Joblist jobs={filteredJobs} />
     </div>
   );
 }
+
+
+
+//動作したけどURLにクエリパラメータが表示される
+// 'use client';
+
+// import { useEffect, useState } from 'react';
+// import { createClient } from '@supabase/supabase-js';
+// import Sidebar from './components/Sidebar';
+// import Joblist from './components/Joblist';
+
+// const supabase = createClient(
+//   process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// );
+
+// interface Job {
+//   id: number;
+//   title: string;
+//   category: string;
+//   salary: number;
+// }
+
+// interface HomePageProps {
+//   searchParams: {
+//     categories?: string;
+//     salary?: string;
+//   };
+// }
+
+// export default function HomePage({ searchParams }: HomePageProps) {
+//   const [jobs, setJobs] = useState<Job[]>([]);
+//   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+//   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+//   const [selectedSalary, setSelectedSalary] = useState<number>(0);
+
+//   // 初期値としてURLのクエリパラメータからカテゴリと給与を取得
+//   useEffect(() => {
+//     const categories = searchParams.categories
+//       ? searchParams.categories.split(',')
+//       : [];
+//     const salary = searchParams.salary
+//       ? parseInt(searchParams.salary, 10)
+//       : 0;
+
+//     setSelectedCategories(categories);
+//     setSelectedSalary(salary);
+
+//     // 初期データをフェッチする
+//     const fetchJobs = async () => {
+//       let query = supabase.from('jobs').select('*');
+
+//       if (categories.length > 0) {
+//         query = query.in('category', categories);
+//       }
+
+//       query = query.gte('salary', salary);
+
+//       const { data: jobsData, error } = await query;
+//       if (error) {
+//         console.error('Error fetching jobs:', error);
+//       } else {
+//         setJobs(jobsData || []);
+//         setFilteredJobs(jobsData || []); // 初期状態ではすべてのジョブを表示
+//       }
+//     };
+
+//     fetchJobs();
+//   }, [searchParams]);
+
+//   // URLクエリを更新する処理
+//   const handleFilterChange = (categories: string[], salary: number) => {
+//     setSelectedCategories(categories);
+//     setSelectedSalary(salary);
+
+//     // クエリパラメータを更新
+//     const url = new URL(window.location.href);
+
+//     // カテゴリが空でない場合のみURLに設定
+//     if (categories.length > 0) {
+//       url.searchParams.set('categories', categories.join(','));
+//     } else {
+//       url.searchParams.delete('categories'); // 空の場合は削除
+//     }
+
+//     // 給与が0以外の場合のみURLに設定
+//     if (salary > 0) {
+//       url.searchParams.set('salary', salary.toString());
+//     } else {
+//       url.searchParams.delete('salary'); // 0の場合は削除
+//     }
+
+//     window.history.pushState({}, '', url.toString()); // URLのクエリを更新
+
+//     // フィルタリング後のジョブを取得
+//     const fetchFilteredJobs = async () => {
+//       let query = supabase.from('jobs').select('*');
+
+//       if (categories.length > 0) {
+//         query = query.in('category', categories);
+//       }
+
+//       if (salary > 0) {
+//         query = query.gte('salary', salary);
+//       }
+
+//       const { data: filteredData, error } = await query;
+//       if (error) {
+//         console.error('Error fetching filtered jobs:', error);
+//       } else {
+//         setFilteredJobs(filteredData || []);
+//       }
+//     };
+
+//     fetchFilteredJobs(); // 新しいフィルタ条件でジョブをフェッチ
+//   };
+
+//   return (
+//     <div className="flex">
+//       <Sidebar
+//         selectedCategories={selectedCategories}
+//         selectedSalary={selectedSalary}
+//         onFilterChange={handleFilterChange}
+//       />
+//       <Joblist jobs={filteredJobs} />
+//     </div>
+//   );
+// }
+
+
+// 'use client';
+
+// import { createClient } from '@supabase/supabase-js';
+// import { cookies } from 'next/headers'; // SSR用にcookieを扱う
+// import Sidebar from './components/Sidebar';
+// import Joblist from './components/Joblist';
+// import { Suspense } from 'react';
+
+// interface Job {
+//   id: number;
+//   title: string;
+//   category: string;
+//   salary: number;
+// }
+
+// interface HomePageProps {
+//   searchParams: {
+//     categories?: string;
+//     salary?: string;
+//   };
+// }
+
+// export default async function HomePage({ searchParams }: HomePageProps) {
+//   // サーバーサイドでSupabaseクライアントを作成
+//   const supabase = createClient(
+//     process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+//     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+//   );
+
+//   // クエリパラメータからカテゴリと給与を取得
+//   const selectedCategories = searchParams.categories
+//     ? searchParams.categories.split(',')
+//     : [];
+//   const selectedSalary = searchParams.salary
+//     ? parseInt(searchParams.salary, 10)
+//     : 0;
+
+//   // Supabaseクエリを実行し、データを取得（SSR部分）
+//   let query = supabase.from('jobs').select('*');
+
+//   // カテゴリでフィルタリング
+//   if (selectedCategories.length > 0) {
+//     query = query.in('category', selectedCategories);
+//   }
+
+//   // 給与でフィルタリング
+//   query = query.gte('salary', selectedSalary);
+
+//   // データを取得
+//   const { data: jobs, error } = await query;
+
+//   if (error) {
+//     console.error('Error fetching jobs:', error);
+//     return <div>エラーが発生しました。</div>;
+//   }
+
+//   // クライアントサイドのフィルタ更新関数
+//   const handleFilterChange = (categories: string[], salary: number) => {
+//     const query = {
+//       categories: categories.join(','),  // カンマ区切りでクエリを生成
+//       salary: salary.toString(),
+//     };
+
+//     // URLのクエリパラメータを変更してページリロード
+//     const url = new URL(window.location.href);
+//     url.searchParams.set('categories', query.categories);
+//     url.searchParams.set('salary', query.salary);
+//     window.location.href = url.toString(); // リダイレクト処理
+//   };
+
+//   return (
+//     <div className="flex">
+//       <Sidebar
+//         selectedCategories={selectedCategories}
+//         selectedSalary={selectedSalary}
+//         onFilterChange={handleFilterChange}
+//       />
+//       {/* Suspenseを使用して、ロード中の状態を処理 */}
+//       <Suspense fallback={<div>Loading jobs...</div>}>
+//         <Joblist jobs={jobs || []} />
+//       </Suspense>
+//     </div>
+//   );
+// }
+
+
+// import Sidebar from './components/Sidebar';
+// import Joblist from './components/Joblist';
+
+// import { createClient } from '@supabase/supabase-js';
+// import { cookies } from 'next/headers';
+
+// export default async function HomePage() {
+//   const supabase = createClient(
+//     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+//     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+//   );
+
+//   // Supabaseクエリを実行
+//   let { data: jobs, error } = await supabase.from('jobs').select('*');
+//   if (error) {
+//     console.error('Error fetching jobs:', error);
+//     return <div>エラーが発生しました。</div>;
+//   }
+
+//   return (
+//     <div>
+//       <Sidebar
+//         selectedCategories={selectedCategories}
+//         selectedSalary={selectedSalary}
+//         onFilterChange={handleFilterChange}
+//       />
+//       <h1>求人一覧</h1>
+//       {jobs?.map((job) => (
+//         <div key={job.id}>
+//           <h2>{job.title}</h2>
+//           <p>Category: {job.category}</p>
+//           <p>Salary: {job.salary}</p>
+//         </div>
+//       ))}
+//     </div>
+//   );
+// }
+
+
+// // 'use client';
+
+// import { createClient } from '@supabase/supabase-js';
+// import { cookies } from 'next/headers'; // SSR用にcookieを扱う
+// import Sidebar from './components/Sidebar';
+// import Joblist from './components/Joblist';
+
+
+// interface Job {
+//   id: number;
+//   title: string;
+//   category: string;
+//   salary: number;
+// }
+
+// interface HomePageProps {
+//   searchParams: {
+//     categories?: string;
+//     salary?: string;
+//   };
+// }
+
+// export default async function HomePage({ searchParams }: HomePageProps) {
+//   const supabase = createClient({
+//     cookies,
+//     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+//     supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+// });
+
+//   // クエリパラメータからカテゴリと給与を取得
+//   const selectedCategories = searchParams.categories
+//     ? searchParams.categories.split(',')
+//     : [];
+//   const selectedSalary = searchParams.salary
+//     ? parseInt(searchParams.salary, 10)
+//     : 0;
+
+//   // Supabaseクライアントをサーバーサイドで作成
+//   // const supabase = createClient({ cookies });
+  
+//   // Supabaseクエリを実行
+//   let query = supabase.from('jobs').select('*');
+
+//   // カテゴリでフィルタリング
+//   if (selectedCategories.length > 0) {
+//     query = query.in('category', selectedCategories);
+//   }
+
+//   // 給与でフィルタリング
+//   query = query.gte('salary', selectedSalary);
+
+//   // データを取得
+//   const { data: jobs, error } = await query;
+
+//   if (error) {
+//     console.error('Error fetching jobs:', error);
+//     return <div>エラーが発生しました。</div>;
+//   }
+
+//   const handleFilterChange = (categories: string[], salary: number) => {
+//     // クライアントサイドのフィルタリング更新処理
+//     const query = {
+//       categories: categories.join(','),  // カンマ区切りでクエリを生成
+//       salary: salary.toString(),
+//     };
+
+//     // ページをリダイレクト（この処理はクライアント側で行うため、Router.pushの代わりにリンク生成や直接URL変更）
+//     const url = new URL(window.location.href);
+//     url.searchParams.set('categories', query.categories);
+//     url.searchParams.set('salary', query.salary);
+//     window.location.href = url.toString();
+//   };
+
+//   return (
+//     <div className="flex">
+//       <Sidebar
+//         selectedCategories={selectedCategories}
+//         selectedSalary={selectedSalary}
+//         onFilterChange={handleFilterChange}
+//       />
+//       <Joblist jobs={jobs || []} />
+//     </div>
+//   );
+// }
+
+
+// 'use client';
+
+// import { useState, useEffect } from 'react';
+// import { createClient } from '@supabase/supabase-js';
+// import Sidebar from './components/Sidebar';
+// import Joblist from './components/Joblist';
+
+// const supabase = createClient(
+//   process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// );
+
+// interface Job {
+//     id: number;
+//     title: string;
+//     category: string;
+//     salary: number;
+//   }
+
+// export default async function HomePage({ searchParams }: { searchParams: { categories?: string, salary?: string } }) {
+//   const { categories = '', salary = '0' } = searchParams;
+//   const initialCategories = categories ? categories.split(',') : [];
+//   const initialSalary = parseInt(salary, 10) || 0;
+
+//   const [jobs, setJobs] = useState<Job[]>([]);
+//   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
+//   const [selectedSalary, setSelectedSalary] = useState<number>(initialSalary);
+
+//   const fetchJobs = async (categories: string[], salary: number) => {
+//     let query = supabase.from('jobs').select('*');
+//     if (categories.length > 0) {
+//       query = query.in('category', categories);
+//     }
+//     query = query.gte('salary', salary);
+
+//     const { data: jobsData, error } = await query;
+//     if (error) {
+//       console.error('Error fetching jobs:', error);
+//       return;
+//     }
+//     setJobs(jobsData || []);
+//   };
+
+//   // 初期データをフェッチ
+//   useEffect(() => {
+//     fetchJobs(selectedCategories, selectedSalary);
+//   }, []);
+
+//   const handleFilterChange = (categories: string[], salary: number) => {
+//     setSelectedCategories(categories);
+//     setSelectedSalary(salary);
+//     fetchJobs(categories, salary);
+//   };
+
+//   return (
+//     <div className="flex">
+//       <Sidebar
+//         selectedCategories={selectedCategories}
+//         selectedSalary={selectedSalary}
+//         onFilterChange={handleFilterChange}
+//       />
+//       <Joblist jobs={jobs} />
+//     </div>
+//   );
+// }
+
+
+// 'use client';
+
+// import { createClient } from '@supabase/supabase-js';
+// import Sidebar from './components/Sidebar';
+// import Joblist from './components/Joblist';
+
+// const supabase = createClient(
+//   process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// );
+
+// export default async function HomePage({ searchParams }: { searchParams: { categories?: string, salary?: string } }) {
+//   const { categories = '', salary = '0' } = searchParams;
+
+//   const selectedCategories = categories ? categories.split(',') : [];
+//   const selectedSalary = parseInt(salary, 10) || 0;
+
+//   // サーバーサイドでデータをフェッチ
+//   let query = supabase.from('jobs').select('*');
+
+//   if (selectedCategories.length > 0) {
+//     query = query.in('category', selectedCategories);
+//   }
+
+//   query = query.gte('salary', selectedSalary);
+
+//   const { data: jobs, error } = await query;
+
+//   if (error) {
+//     console.error('Error fetching jobs:', error);
+//     return <div>エラーが発生しました。</div>;
+//   }
+
+//   return (
+//     <div className="flex">
+//       <Sidebar
+//         selectedCategories={selectedCategories}
+//         selectedSalary={selectedSalary}
+//         onFilterChange={handleFilterChange}
+//         // onFilterChange={() => {}}  // クライアント側で動くのでダミー関数
+//       />
+//       <Joblist jobs={jobs || []} />
+//     </div>
+//   );
+// }
 
 // import { createClient } from '@supabase/supabase-js';
 // import Sidebar from './components/Sidebar'

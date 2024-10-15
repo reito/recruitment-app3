@@ -13,7 +13,9 @@ export async function GET(request: Request) {
 
   try {
     let query = 'SELECT * FROM jobs WHERE salary >= $1';
-    const queryParams: any[] = [salary];
+    // const queryParams: any[] = [salary];
+    const queryParams: (string | number | string[])[] = [salary];
+
 
     if (categories.length > 0 && categories[0] !== '') {
       query += ' AND category = ANY($2)';

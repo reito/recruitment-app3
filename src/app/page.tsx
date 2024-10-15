@@ -17,14 +17,14 @@ export default function HomePage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSalary, setSelectedSalary] = useState<number>(0);
 
-  const fetchJobs = async () => {
-    const categoriesParam = selectedCategories.length > 0 ? selectedCategories.join(',') : '';
-    const response = await fetch(`/api/jobs?categories=${categoriesParam}&salary=${selectedSalary}`);
-    const data = await response.json();
-    setJobs(data);
-  };
-
   useEffect(() => {
+    const fetchJobs = async () => {
+      const categoriesParam = selectedCategories.length > 0 ? selectedCategories.join(',') : '';
+      const response = await fetch(`/api/jobs?categories=${categoriesParam}&salary=${selectedSalary}`);
+      const data = await response.json();
+      setJobs(data);
+    };
+
     fetchJobs();
   }, [selectedCategories, selectedSalary]);
 

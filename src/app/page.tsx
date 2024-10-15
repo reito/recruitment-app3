@@ -20,6 +20,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchJobs = async () => {
       const categoriesParam = selectedCategories.length > 0 ? selectedCategories.join(',') : '';
+      console.log("Fetching from API: ", `/api/jobs?categories=${categoriesParam}&salary=${selectedSalary}`);
       const response = await fetch(`/api/jobs?categories=${categoriesParam}&salary=${selectedSalary}`);
       const data = await response.json();
       setJobs(data);

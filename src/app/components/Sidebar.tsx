@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
 type SidebarProps = {
   selectedCategories: string[];
@@ -9,33 +9,42 @@ type SidebarProps = {
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ selectedCategories, selectedSalary, onFilterChange }) => {
-  const categories = ['エンジニア', 'デザイン', 'マーケティング', '人事', '財務・経理', '医療・介護'];
+  const [categories, setCategories] = useState<string[]>(selectedCategories);
+  const [salary, setSalary] = useState<number>(selectedSalary);
+
+  const categoryOptions = ['エンジニア', 'デザイン', 'マーケティング', '人事', '財務・経理', '医療・介護'];
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const category = e.target.value;
+    let updatedCategories;
+
     if (e.target.checked) {
-      onFilterChange([...selectedCategories, category], selectedSalary);
+      updatedCategories = [...categories, category];
     } else {
-      onFilterChange(selectedCategories.filter((c) => c !== category), selectedSalary);
+      updatedCategories = categories.filter(c => c !== category);
     }
+
+    setCategories(updatedCategories);
+    onFilterChange(updatedCategories, salary);
   };
 
   const handleSalaryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const salary = parseInt(e.target.value, 10);
-    onFilterChange(selectedCategories, salary);
+    const newSalary = parseInt(e.target.value, 10);
+    setSalary(newSalary);
+    onFilterChange(categories, newSalary);
   };
 
   return (
     <div className="p-1 bg-gray-200">
       <aside className="w-full p-4">
         <h2 className="font-bold mb-4">求人カテゴリ</h2>
-        {categories.map((category) => (
+        {categoryOptions.map(category => (
           <label key={category} className="block mb-2">
             <input
               type="checkbox"
               value={category}
               onChange={handleCategoryChange}
-              checked={selectedCategories.includes(category)}
+              checked={categories.includes(category)}
               className="mr-2"
             />
             {category}
@@ -43,7 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedCategories, selectedSalary, o
         ))}
       </aside>
       <h2 className="text-xl font-bold mb-4">年収</h2>
-      <select value={selectedSalary} onChange={handleSalaryChange} className="w-full p-2 border">
+      <select value={salary} onChange={handleSalaryChange} className="w-full p-2 border">
         <option value={0}>全ての年収</option>
         <option value={300}>300万円以上</option>
         <option value={500}>500万円以上</option>
@@ -54,6 +63,199 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedCategories, selectedSalary, o
 };
 
 export default Sidebar;
+
+
+// app/components/Sidebar.tsx
+// 'use client';
+
+// import React, { useState } from 'react';
+
+// type SidebarProps = {
+//   selectedCategories: string[];
+//   selectedSalary: number;
+//   onFilterChange: (category: string[], salary: number) => void;
+// };
+
+// const Sidebar: React.FC<SidebarProps> = ({ selectedCategories, selectedSalary, onFilterChange }) => {
+//   const [categories, setCategories] = useState<string[]>(selectedCategories);
+//   const [salary, setSalary] = useState<number>(selectedSalary);
+
+//   const categoryOptions = ['エンジニア', 'デザイン', 'マーケティング', '人事', '財務・経理', '医療・介護'];
+
+//   const handleCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const category = e.target.value;
+//     let updatedCategories;
+
+//     if (e.target.checked) {
+//       updatedCategories = [...categories, category];
+//     } else {
+//       updatedCategories = categories.filter(c => c !== category);
+//     }
+
+//     setCategories(updatedCategories);
+//     onFilterChange(updatedCategories, salary);
+//   };
+
+//   const handleSalaryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+//     const newSalary = parseInt(e.target.value, 10);
+//     setSalary(newSalary);
+//     onFilterChange(categories, newSalary);
+//   };
+
+//   return (
+//     <div className="p-1 bg-gray-200">
+//       <aside className="w-full p-4">
+//         <h2 className="font-bold mb-4">求人カテゴリ</h2>
+//         {categoryOptions.map(category => (
+//           <label key={category} className="block mb-2">
+//             <input
+//               type="checkbox"
+//               value={category}
+//               onChange={handleCategoryChange}
+//               checked={categories.includes(category)}
+//               className="mr-2"
+//             />
+//             {category}
+//           </label>
+//         ))}
+//       </aside>
+//       <h2 className="text-xl font-bold mb-4">年収</h2>
+//       <select value={salary} onChange={handleSalaryChange} className="w-full p-2 border">
+//         <option value={0}>全ての年収</option>
+//         <option value={300}>300万円以上</option>
+//         <option value={500}>500万円以上</option>
+//         <option value={700}>700万円以上</option>
+//       </select>
+//     </div>
+//   );
+// };
+
+// export default Sidebar;
+
+
+// 'use client'; // クライアントコンポーネントであることを明示
+
+// import React, { useState } from 'react';
+
+// type SidebarProps = {
+//   selectedCategories: string[];
+//   selectedSalary: number;
+//   onFilterChange?: (category: string[], salary: number) => void;
+// };
+
+// const Sidebar: React.FC<SidebarProps> = ({ selectedCategories, selectedSalary, onFilterChange }) => {
+//   const [categories, setCategories] = useState<string[]>(selectedCategories);
+//   const [salary, setSalary] = useState<number>(selectedSalary);
+
+//   const categoryOptions = ['エンジニア', 'デザイン', 'マーケティング', '人事', '財務・経理', '医療・介護'];
+
+//   const handleCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const category = e.target.value;
+//     let updatedCategories;
+
+//     if (e.target.checked) {
+//       updatedCategories = [...categories, category];
+//     } else {
+//       updatedCategories = categories.filter(c => c !== category);
+//     }
+
+//     setCategories(updatedCategories);
+//     onFilterChange?.(updatedCategories, salary); // イベントハンドリングはクライアントサイド
+//   };
+
+//   const handleSalaryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+//     const newSalary = parseInt(e.target.value, 10);
+//     setSalary(newSalary);
+//     onFilterChange?.(categories, newSalary); // イベントハンドリングはクライアントサイド
+//   };
+
+//   return (
+//     <div className="p-1 bg-gray-200">
+//       <aside className="w-full p-4">
+//         <h2 className="font-bold mb-4">求人カテゴリ</h2>
+//         {categoryOptions.map(category => (
+//           <label key={category} className="block mb-2">
+//             <input
+//               type="checkbox"
+//               value={category}
+//               onChange={handleCategoryChange}
+//               checked={categories.includes(category)}
+//               className="mr-2"
+//             />
+//             {category}
+//           </label>
+//         ))}
+//       </aside>
+//       <h2 className="text-xl font-bold mb-4">年収</h2>
+//       <select value={salary} onChange={handleSalaryChange} className="w-full p-2 border">
+//         <option value={0}>全ての年収</option>
+//         <option value={300}>300万円以上</option>
+//         <option value={500}>500万円以上</option>
+//         <option value={700}>700万円以上</option>
+//       </select>
+//     </div>
+//   );
+// };
+
+// export default Sidebar;
+
+
+// 'use client';
+
+// import React from 'react';
+
+// type SidebarProps = {
+//   selectedCategories: string[];
+//   selectedSalary: number;
+//   onFilterChange: (category: string[], salary: number) => void;
+// };
+
+// const Sidebar: React.FC<SidebarProps> = ({ selectedCategories, selectedSalary, onFilterChange }) => {
+//   const categories = ['エンジニア', 'デザイン', 'マーケティング', '人事', '財務・経理', '医療・介護'];
+
+//   const handleCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const category = e.target.value;
+//     if (e.target.checked) {
+//       onFilterChange([...selectedCategories, category], selectedSalary);
+//     } else {
+//       onFilterChange(selectedCategories.filter((c) => c !== category), selectedSalary);
+//     }
+//   };
+
+//   const handleSalaryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+//     const salary = parseInt(e.target.value, 10);
+//     onFilterChange(selectedCategories, salary);
+//   };
+
+//   return (
+//     <div className="p-1 bg-gray-200">
+//       <aside className="w-full p-4">
+//         <h2 className="font-bold mb-4">求人カテゴリ</h2>
+//         {categories.map((category) => (
+//           <label key={category} className="block mb-2">
+//             <input
+//               type="checkbox"
+//               value={category}
+//               onChange={handleCategoryChange}
+//               checked={selectedCategories.includes(category)}
+//               className="mr-2"
+//             />
+//             {category}
+//           </label>
+//         ))}
+//       </aside>
+//       <h2 className="text-xl font-bold mb-4">年収</h2>
+//       <select value={selectedSalary} onChange={handleSalaryChange} className="w-full p-2 border">
+//         <option value={0}>全ての年収</option>
+//         <option value={300}>300万円以上</option>
+//         <option value={500}>500万円以上</option>
+//         <option value={700}>700万円以上</option>
+//       </select>
+//     </div>
+//   );
+// };
+
+// export default Sidebar;
 
 
 // //以下部分的SSR適用コード

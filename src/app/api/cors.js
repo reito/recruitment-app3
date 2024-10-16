@@ -14,8 +14,8 @@ export default async function handler(req, res) {
         method: req.method,
         headers: {
           'Content-Type': 'application/json',
-          'apikey': process.env.SUPABASE_KEY,
-          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`,
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
         },
         body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,  // GETリクエストの場合はbodyを省略
       });

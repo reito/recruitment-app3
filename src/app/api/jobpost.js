@@ -12,12 +12,12 @@ export default async function handler(req, res) {
 
     try {
         // Supabaseにリクエスト
-        const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/jobs`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/jobs`, {
             method: req.method,
             headers: {
                 'Content-Type': 'application/json',
                 'apikey': process.env.SUPABASE_API_KEY,
-                'Authorization': `Bearer ${process.env.SUPABASE_API_KEY}`,
+                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
             },
             body: JSON.stringify(req.body),
         });

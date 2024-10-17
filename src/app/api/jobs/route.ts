@@ -3,11 +3,11 @@ import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
 // デバッグ用に一時的に追加
-console.log("DATABASE_URL:", process.env.REACT_APP_DATABASE_URL);
+console.log("DATABASE_URL:", process.env.DATABASE_URL);
 
 
 const pool = new Pool({
-  connectionString: process.env.REACT_APP_DATABASE_URL || "postgresql://postgres.ucjkhmuwwrzlbgojcdee:oisrit095384@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres",
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
 

@@ -8,7 +8,8 @@ console.log("DATABASE_URL:", process.env.REACT_APP_DATABASE_URL);
 
 const pool = new Pool({
   connectionString: process.env.REACT_APP_DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: { 
+    rejectUnauthorized: false },
 });
 
 export async function GET(request: Request) {

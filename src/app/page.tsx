@@ -13,6 +13,7 @@ interface Job {
 }
 
 export default function HomePage() {
+  console.log("DATABASE_URL:", process.env.REACT_APP_DATABASE_URL);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSalary, setSelectedSalary] = useState<number>(0);

@@ -7,9 +7,8 @@ console.log("DATABASE_URL:", process.env.REACT_APP_DATABASE_URL);
 
 
 const pool = new Pool({
-  connectionString: process.env.REACT_APP_DATABASE_URL,
-  ssl: { 
-    rejectUnauthorized: false },
+  connectionString: process.env.REACT_APP_DATABASE_URL || "postgresql://postgres.ucjkhmuwwrzlbgojcdee:oisrit095384@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres",
+  ssl: { rejectUnauthorized: false },
 });
 
 export async function GET(request: Request) {

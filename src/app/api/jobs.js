@@ -1,39 +1,40 @@
-// pages/api/jobs.js
 export default async function handler(req, res) {
-    // CORS設定
+    console.log("リクエストが到達:", req.method);
+    
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
+  
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
-
+  
     try {
-        // Supabaseへのリクエストをリレー
+        console.log("Supabaseに接続を開始します...");
         const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/jobs`, {
             method: req.method,
             headers: {
                 'Content-Type': 'application/json',
                 'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`
+                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
             },
-            body: req.method !== 'GET' ? JSON.stringify(req.body) : null,
+            body: JSON.stringify(req.body),
         });
-
+  
         if (!response.ok) {
-            console.error('Error:', response.statusText);
+            console.error('エラー:', response.statusText);
             return res.status(500).json({ message: '求人の取得に失敗しました' });
         }
-
+  
         const data = await response.json();
+        console.log("データを取得:", data);
         res.status(200).json(data);
     } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('Fetchエラー:', error);
         res.status(500).json({ message: '求人の取得に失敗しました' });
     }
-}
-
+  }
+  
 
 // // pages/api/jobs.js
 // export default async function handler(req, res) {

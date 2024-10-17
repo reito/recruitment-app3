@@ -38,7 +38,8 @@ console.log("DATABASE_URL:", process.env.DATABASE_URL);
 // PostgreSQLへの接続設定
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL, // 環境変数からPostgreSQL接続URLを取得
-  ssl: { rejectUnauthorized: false },
+  // ssl: { rejectUnauthorized: false },
+  ssl: true,
 });
 
 // POSTリクエストに対応する関数をエクスポート

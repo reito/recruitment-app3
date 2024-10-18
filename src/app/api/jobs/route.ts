@@ -3,9 +3,10 @@ import { NextResponse } from 'next/server';
 import { Pool } from 'pg';
 
 // デバッグ用に一時的に追加
-if (process.env.NODE_ENV === 'development') {
-  console.log("DATABASE_URL:", process.env.DATABASE_URL);
-}
+// if (process.env.NODE_ENV === 'development') {
+//   console.log("DATABASE_URL:", process.env.DATABASE_URL);
+// }
+console.log("DATABASE_URL:", process.env.DATABASE_URL);
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,

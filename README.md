@@ -9,3 +9,6 @@ supabaseから求人リストをフェッチする箇所はSSRに対応したも
 ・Tailwind CSS
 ・supabase
 ・Vercel
+
+・デプロイURL
+https://recruitment-app3-4faf44huu-reitos-projects.vercel.app/
